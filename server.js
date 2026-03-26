@@ -41,7 +41,10 @@ app.use(express.urlencoded({ extended: true }));
 let isDbConnected = false;
 
 const connectDB = async () => {
-  if (isDbConnected) return;
+  if (isDbConnected || mongoose.connection.readyState === 1) {
+    isDbConnected = true;
+    return;
+  }
 
   if (!process.env.MONGODB_URI) {
     throw new Error('MONGODB_URI is missing in environment variables');
@@ -108,20 +111,23 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    if (!isVercel) {
-      await connectDB();
-      httpServer.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-      });
+    await connectDB();
+
+    if (!httpServer) {
+      throw new Error('HTTP server is not initialized');
     }
+
+    httpServer.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   } catch (error) {
     console.error('Failed to start server:', error.message);
-    if (!isVercel) {
-      process.exit(1);
-    }
+    process.exit(1);
   }
 };
 
-startServer();
+if (require.main === module && !isVercel) {
+  startServer();
+}
 
 module.exports = app;
