@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
     specialization: {
       type: String,
       enum: ['Cardiology', 'Dermatology', 'Neurology', 'Orthopedics', 'Pediatrics', 'Psychiatry', 'General'],
-      default: null,
+      default: undefined,
     },
     // For doctors to store their appointments
     appointments: [
